@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -20,19 +20,36 @@ public class GrabObject : MonoBehaviour
     void Start()
     {
         player = GetComponent<AudioSource>();
-        spawnerPosition = spawner.transform.position;
-        spawnerRotation = spawner.transform.rotation;
+
+        if (spawner != null)
+        {
+            spawnerPosition = spawner.transform.position;
+            spawnerRotation = spawner.transform.rotation;
+        }
+
         boxCollider = GetComponent<BoxCollider>();
-        grabManager = GameObject.Find("GrabManager").GetComponent<GrabManager>();
+        grabManager = FindObjectOfType<GrabManager>();
+    }
+
+    void Update()
+    {
+        // Solo verificar captura si esta pokeball está en la mano
+        if (grabManager != null && grabManager.heldItem == this.gameObject)
+        {
+            CheckPokemonCapture();
+        }
     }
 
     public void Grab()
     {
-        player.PlayOneShot(soundGrab);
+        if (soundGrab != null && player != null)
+            player.PlayOneShot(soundGrab);
+
         if (grabManager.heldItem != null)
         {
             grabManager.heldItem.GetComponent<GrabObject>().Drop();
         }
+
         grabManager.heldItem = transform.gameObject;
         boxCollider.enabled = false;
     }
@@ -64,7 +81,9 @@ public class GrabObject : MonoBehaviour
 
     public void Place(Vector3 position)
     {
-        player.PlayOneShot(soundPlace);
+        if (soundPlace != null && player != null)
+            player.PlayOneShot(soundPlace);
+
         transform.position = position;
         grabManager.heldItem = null;
         boxCollider.enabled = true;
@@ -73,5 +92,28 @@ public class GrabObject : MonoBehaviour
     public void OnPointerClickXR()
     {
         Grab();
+    }
+
+    void CheckPokemonCapture()
+    {
+        float radius = 0.6f; 
+
+        Collider[] hits = Physics.OverlapSphere(transform.position, radius);
+
+        foreach (Collider col in hits)
+        {
+            if (col.CompareTag("Pokemon"))
+            {
+                Debug.Log("Pokemon capturado");
+
+                col.gameObject.SetActive(false); // pokemon desaparece
+                Destroy(this.gameObject);
+
+                if (GameManager.Instance != null)
+                    GameManager.Instance.AddScore();
+
+                break;
+            }
+        }
     }
 }
