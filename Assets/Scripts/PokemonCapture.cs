@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,7 +13,8 @@ public class PokemonCapture : MonoBehaviour
 
     public void OnPointerClickXR()
     {
-        Debug.Log("ME EST�N MIRANDO Y ACTIVANDO");
+        Debug.Log("ME ESTÁN MIRANDO Y ACTIVANDO");
+
         if (grabManager.heldItem != null)
         {
             GrabObject grabObj = grabManager.heldItem.GetComponent<GrabObject>();
@@ -21,6 +22,14 @@ public class PokemonCapture : MonoBehaviour
             if (grabObj != null && grabObj.type == "Objeto")
             {
                 Debug.Log("Pokemon capturado");
+
+                if (grabObj.soundPlace != null)
+                {
+                    AudioSource.PlayClipAtPoint(
+                        grabObj.soundPlace,
+                        transform.position
+                    );
+                }
 
                 // eliminar pokeball
                 Destroy(grabManager.heldItem);
